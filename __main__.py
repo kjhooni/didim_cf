@@ -1,39 +1,33 @@
-##app.py
+##__main__.py
 import call_api, var
-import pandas as pd
-from tkinter import CENTER
+import pip
 
+def main(self):
 
-def main():
+    pip.main(["install", "pandas"])
+    import pandas as pd
+    from tkinter import CENTER
 
-    global totalUseAmount, to_html
+    ##################################################################   getDemandCostList
 
-    # -----------------------------------------------------------------getDemandCostList
-
-    api_server = "https://billingapi.apigw.ntruss.com"
-    api_url = "/billing/v1/cost/getDemandCostList"
-    api_url = (
-        api_url
-        + "?regionCode=KR&responseFormatType=json&startMonth={}&endMonth={}".format(
-            var.yyyymm, var.yyyymm
-        )
+    res = call_api.func(
+        var.apicall_method_get,
+        var.billing_api_server,
+        var.getDemandCostList_api_url,
+        1,
     )
-    res = call_api.func(var.apicall_method_get, api_server, api_url, 1)
 
     totalUseAmount = res["getDemandCostListResponse"]["demandCostList"][0][var.uA]
     totalUseAmount = format(totalUseAmount, ",d")
 
-    # -----------------------------------------------------------------getProductDemandCostList
+    ##################################################################   getProductDemandCostList
 
-    api_server = "https://billingapi.apigw.ntruss.com"
-    api_url = "/billing/v1/cost/getProductDemandCostList"
-    api_url = (
-        api_url
-        + "?regionCode=KR&startMonth={}&endMonth={}&responseFormatType=json".format(
-            var.yyyymm, var.yyyymm
-        )
+    res = call_api.func(
+        var.apicall_method_get,
+        var.billing_api_server,
+        var.getProductDemandCostList_api_url,
+        1,
     )
-    res = call_api.func(var.apicall_method_get, api_server, api_url, 1)
 
     totalRows = res[var.getproductde]["totalRows"]
 
@@ -62,12 +56,10 @@ def main():
         a[i][1] = format(useAmount[i], ",d")
 
     df = pd.DataFrame(a, columns=["서비스", "사용금액(원)"])
-
     to_html = df.to_html(index=False, col_space=[250, 50], justify=CENTER, border=2)
-    # ---------------------------------------------------------------------------------------mailSend
 
-    api_server = "https://mail.apigw.ntruss.com"
-    api_url = "/api/v1/mails"
+    ##################################################################   mailSend
+
     body = {
         "senderAddress": "noreply@tcping.kr",
         "title": "[네이버클라우드] 운영센터 2팀 테스트 계정 사용내역 보고",
@@ -95,17 +87,18 @@ def main():
             totalUseAmount,
             to_html,
         ),
-        "individual": False,
+        "individual": True,
         "advertising": False,
         "recipients": [
+            {"address": "hwany@didim365.com", "type": "R"},
+            {"address": "hmjeon@didim365.com", "type": "R"},
+            {"address": "jsbae@didim365.com", "type": "R"},
             {"address": "kimjh@didim365.com", "type": "R"},
-            # {"address": "choimp@didim365.com", "type": "R"},
-            # {"address": "ohsic@didim365.com", "type": "R"},
-            # {"address": "hwany@didim365.com", "type": "R"},
+            {"address": "choimp@didim365.com", "type": "R"},
+            {"address": "ohsic@didim365.com", "type": "R"},
+            {"address": "leehw@didim365.com", "type": "R"},
+            {"address": "ygc@didim365.com", "type": "R"},
         ],
     }
-    call_api.func(var.apicall_method_post, api_server, api_url, body)
+    call_api.func(var.apicall_method_post, var.mail_api_server, var.mail_api_url, body)
     return {"payload": "true"}
-
-
-main()

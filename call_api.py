@@ -30,6 +30,7 @@ def func(method, api_server, api_url, body):
 
         response = requests.get(api_server + api_url, headers=http_header)
         res = response.json()
+
         return res
 
     elif method == "POST":
@@ -41,4 +42,5 @@ def func(method, api_server, api_url, body):
             "x-ncp-apigw-signature-v2": signingKey,
         }
         body2 = json.dumps(body)
+
         return requests.post(api_server + api_url, headers=http_header, data=body2)
